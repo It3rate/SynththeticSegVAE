@@ -78,6 +78,15 @@ class SynthDataset(Dataset):
         # DON'T PUT TENSORS ONTO CUDA IN DATASET
         #tensor = tensor.to(torch.device("cuda"))
         return tensor
+    
+    def gen_from_index(self, index):
+        gen = self.data.iloc[index, 2:]
+        gen[0] = (gen[0] & 0xFFFFFF) / float(0xFFFFFF)
+        gen[1] = (gen[1] & 0xFFFFFF)/ float(0xFFFFFF)
+        gen[5] = (gen[5] - 6.0) / 14.0
+        gen = np.array(gen)
+        gen = gen.astype('float32')
+        return gen
 
 
     def getDrawParams(self, index):

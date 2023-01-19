@@ -24,12 +24,6 @@ class VAEmodel(nn.Module):
 
         if create_model:
             self.create_full_model()
-    
-    @classmethod
-    def new_decoder(cls):
-        self = VAEmodel(latent_dims=7, hidden_dims=[32, 64, 64], image_shape=[3,32,32], create_model=False)
-        self.create_decoder()
-        return self.model.to(self.device)
         
     def create_full_model(self):
         self.encoder = self.create_encoder()
@@ -101,6 +95,20 @@ class VAEmodel(nn.Module):
         checkpoint = torch.load(model_path)
         vae.load_state_dict(checkpoint['model_state_dict'])
         return vae
+    
+    @classmethod
+    def new_decoder(cls):
+        self = VAEmodel(latent_dims=7, hidden_dims=[32, 64, 64], image_shape=[3,32,32], create_model=False)
+        self.create_decoder()
+        return self
+    
+    @classmethod
+    def create_decoder_with_checkpoint(cls, model_path:str):
+        model = cls.new_decoder()
+        model = model.to(torch.device("cuda"))
+        checkpoint = torch.load(model_path)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        return model
 
     def get_latent_dims(self):
         return self.latent_dims

@@ -56,10 +56,10 @@ class SkiaGen:
     @classmethod
     def get_concepts(cls):
         return [
-            Concept("apple", 1, Unot(.04j,.02), Unot(-.1j,.2), Unot(-.5j,2), Unot(6j,6), Unot(6j,6), Unot(-6j,14), Unot(-1.1j,.9)),
+            Concept("apple", 1, Unot(.04j,.02), Unot(-.1j,.2),  Unot(-.5j,2),    Unot(6j,6), Unot(6j,6), Unot(-6j,14), Unot(-1.1j,.9)),
             Concept("apple2", 1, Unot(-.15j,.45), Unot(-.2j,.4), Unot(-.5j,2), Unot(6j,6), Unot(6j,6), Unot(-8j,18), Unot(-1j,.7)),
-            Concept("orange", 1, Unot(-.07j,.15), Unot(-.8j,1), Unot(-.2j,1), Unot(6j,6), Unot(6j,6), Unot(-9j,10), Unot(-.9j,.6)),
-            Concept("box", 0, Unot(-.6j,.8), Unot(-.5j,.7), Unot(-2j,4), Unot(6j,6), Unot(6j,6), Unot(-10j,20), Unot(-.95j,1.05)),
+            Concept("orange", 1, Unot(-.07j,.15), Unot(-.8j,1), Unot(-.2j,1),   Unot(6j,6), Unot(6j,6), Unot(-9j,10), Unot(-.9j,.6)),
+            Concept("box", 0, Unot(-.6j,.8), Unot(-.5j,.7),     Unot(-2j,4),    Unot(6j,6), Unot(6j,6), Unot(-10j,20), Unot(-.95j,1.05)),
             Concept("banana", 2, Unot(-.11j,.16), Unot(-.01j,.2), Unot(-.8j,2), Unot(6j,6), Unot(6j,6), Unot(-8j,10), Unot(-1.5j,2.5))
         ]
     @classmethod

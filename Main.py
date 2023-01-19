@@ -1,6 +1,7 @@
 
 import os
 import torch
+import random
 from InspectData import InspectData
 from SkiaGen import SkiaGen
 from VAE import VAEmodel
@@ -36,36 +37,52 @@ def show_samples():
     samples = vae.sample_images(10)
     inspect.show_images(samples)
     
-    
-def show_latent_change_grid():
+
+def show_latent_change_full(index):
     vae = VAEmodel.create_with_checkpoint(ckpt)
-    index = 706
-    input = SynthDataset.image_to_inputX(f'./data/img_{index}.png')
+    input = SynthDataset.image_to_input(f'./data/img_{index}.png')
+    input = input.cuda()
     mu, log_var = vae.encode(input.unsqueeze(0))
-    count = 9
-    imgs = list()#np.zeros(count * 7)
     z_org = vae.reparameterize(mu, log_var)
+    show_latent_change_grid(vae, z_org, index)
+
+def show_latent_change_decoder(index):
+    dataset = SynthDataset.from_file(csv_path)
+    gen = dataset.gen_from_index(index)
+    gen = torch.from_numpy(gen)
+    print(gen)
+    gen = gen.unsqueeze(0)
+    checkpoint = './output_zKnown/checkpoint_100.pt'
+    model = VAEmodel.create_decoder_with_checkpoint(checkpoint)
+    show_latent_change_grid(model, gen, index)
+    
+def show_latent_change_grid(model, latent, index:int):
+    count = 20
+    imgs = list()#np.zeros(count * 7)
+    mins = [-.4, 0, .2, -6,-6, 0, .9]
+    maxs = [1.0, 1, 4,  6,  6, 1, 2.5]
     for j in range(7):
         row = list()
         imgs.append(row)
-        z = z_org.clone()
-        val = z[0,j].cpu().detach().numpy()
+        z = latent.clone()
+        val = float(z[0,j].cpu().detach().numpy())
         #j2 = j+1 if j < 6 else 0
         #val2 = z[0,j2].cpu().detach().numpy()
         for i in range(count):
-            z[0,j] =  val + (i-count//2) * .6
+            offset = ((maxs[j] - mins[j]) / float(count)) * i + mins[j]
+            z[0,j] =  offset#val + (i-count//2) * .5
             #z[0,j2] =  val2 + (i-count//2) * .6
-            print(z.cpu().detach().numpy()[0])
-            img = vae.sample_with_z(z)
+            print(val, z.cpu().detach().numpy()[0,2:])
+            img = model.sample_with_z(z)
             img_pil:Image.Image = transforms.ToPILImage()(img)
             #if i == 4:
             row.append(img_pil)
 
-    inspect.show_images(imgs, f'./results/paramRange{index}.png')
+    inspect.show_images(imgs, f'./results/sep_{index}.png')
 
 def show_latents(index):
     vae = VAEmodel.create_with_checkpoint(ckpt)
-    input = SynthDataset.image_to_inputX(f'./data/img_{index}.png')
+    input = SynthDataset.image_to_input(f'./data/img_{index}.png')
     mu, log_var = vae.encode(input.unsqueeze(0))
     mu = mu.cpu().detach().numpy()[0]
     log_var = log_var.cpu().detach().numpy()[0]
@@ -87,9 +104,11 @@ def gen_data(count:int, start_index:int):
     inspect.show_images([samples], f'./results/gen.png')
 
 if __name__ == '__main__':  
-    #show_latent_change_grid()
+    #random.seed(10)
+    #show_latent_change_full(706)
+    show_latent_change_decoder(458)
     #show_latents(44)
-    # gen_data(50, 5000)
+    #gen_data(5000, 0)
     #continue_training(ckpt)
     #train()
-    train_decoder()
+    #train_decoder()
