@@ -14,18 +14,26 @@ class VAEmodel(nn.Module):
         self.hidden_dims = hidden_dims #List of hidden layers number of filters/channels
         self.image_shape = image_shape #Input image shape
 
-        if create_model:
-            self.create_full_model()
-        
-    def create_full_model(self):
         self.last_channels = self.hidden_dims[-1]
         self.in_channels = self.image_shape[0]
         #Simple formula to get the number of neurons after the last convolution layer is flattened
         self.flattened_channels = int(self.last_channels*(self.image_shape[1]/(2**len(self.hidden_dims)))**2) 
-       
+
+        self.encoder:nn.Sequential
+        self.decoder:nn.Sequential
+
+        if create_model:
+            self.create_full_model()
+    
+    @classmethod
+    def new_decoder(cls):
+        self = VAEmodel(latent_dims=7, hidden_dims=[32, 64, 64], image_shape=[3,32,32], create_model=False)
+        self.create_decoder()
+        return self.model.to(self.device)
+        
+    def create_full_model(self):
         self.encoder = self.create_encoder()
 
-        # Here are our layers for our latent space distribution
         self.fc_mu = nn.Linear(self.flattened_channels, self.latent_dims)
         self.fc_var = nn.Linear(self.flattened_channels, self.latent_dims)
 
@@ -33,7 +41,6 @@ class VAEmodel(nn.Module):
         
 
     def create_encoder(self):
-        # For each hidden layer we will create a Convolution Block
         modules = []
         for h_dim in self.hidden_dims:
             modules.append(
@@ -49,15 +56,15 @@ class VAEmodel(nn.Module):
             )
             self.in_channels = h_dim
 
-        return nn.Sequential(*modules)
+        self.encoder =  nn.Sequential(*modules)
+        return self.encoder
 
     def create_decoder(self):
-        # Decoder input layer
         self.decoder_input = nn.Linear(self.latent_dims, self.flattened_channels)
-        
-        # For each Convolution Block created on the Encoder we will do a symmetric Decoder with the same Blocks, but using ConvTranspose
         rev_hidden_dims = self.hidden_dims.copy()
         rev_hidden_dims.reverse()
+        self.in_channels = rev_hidden_dims[0]
+        #self.hidden_dims.reverse()
         modules = []
         for h_dim in rev_hidden_dims:
             modules.append(
@@ -83,7 +90,8 @@ class VAEmodel(nn.Module):
             nn.Sigmoid()
         )
         
-        return nn.Sequential(*modules)
+        self.decoder =  nn.Sequential(*modules)
+        return self.decoder
         
 
     @classmethod
@@ -121,9 +129,20 @@ class VAEmodel(nn.Module):
         
         return mu + eps * std
     
-    def forward(self, input):
+    def forward_decode(self, latent):
+        return  self.decode(latent)
+    
+    def loss_decode(self, recons, img):
+        recons_loss = nn.functional.binary_cross_entropy(recons.reshape(recons.shape[0],-1),
+                                                         img.reshape(img.shape[0],-1),
+                                                         reduction="none").sum(dim=-1)
+        return recons_loss.mean(dim=0)
+    
+    def forward(self, input, gen=None):
         mu, log_var = self.encode(input)
-        z = self.reparameterize(mu, log_var)
+        reparam = self.reparameterize(mu, log_var)
+        #print(gen.shape, reparam.shape)
+        z = gen if gen != None else reparam
         return  [self.decode(z), input, mu, log_var, z]
     
     def loss_function(self, recons, input, mu, log_var):

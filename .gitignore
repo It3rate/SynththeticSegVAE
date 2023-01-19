@@ -1,5 +1,5 @@
 __pycache__/
 .vscode/
-data/
-output/
-results/
+data*/
+output*/
+results*/

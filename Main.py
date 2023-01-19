@@ -1,21 +1,30 @@
 
 import os
+import torch
 from InspectData import InspectData
 from SkiaGen import SkiaGen
 from VAE import VAEmodel
 from SynthDataset import SynthDataset
-from Train import TrainVAE
+from Train import TrainVAE, TrainDecoder
 from torchvision import transforms
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 
-ckpt = './output/checkpoint.pt'
+ckpt = './output/checkpoint_org.pt'
 csv_path = './data/params.csv'
 batch_size = 30
 inspect = InspectData()
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+def train():
+    vaeTrain = TrainVAE(csv_path, batch_size)
+    vaeTrain.train()
+
+def train_decoder():
+    decoderTrain = TrainDecoder(csv_path, batch_size)
+    decoderTrain.train()
 
 def continue_training(model_path:str):
     vaeTrain = TrainVAE(csv_path, batch_size)
@@ -31,7 +40,7 @@ def show_samples():
 def show_latent_change_grid():
     vae = VAEmodel.create_with_checkpoint(ckpt)
     index = 706
-    input = SynthDataset.image_to_input(f'./data/img_{index}.png')
+    input = SynthDataset.image_to_inputX(f'./data/img_{index}.png')
     mu, log_var = vae.encode(input.unsqueeze(0))
     count = 9
     imgs = list()#np.zeros(count * 7)
@@ -56,7 +65,7 @@ def show_latent_change_grid():
 
 def show_latents(index):
     vae = VAEmodel.create_with_checkpoint(ckpt)
-    input = SynthDataset.image_to_input(f'./data/img_{index}.png')
+    input = SynthDataset.image_to_inputX(f'./data/img_{index}.png')
     mu, log_var = vae.encode(input.unsqueeze(0))
     mu = mu.cpu().detach().numpy()[0]
     log_var = log_var.cpu().detach().numpy()[0]
@@ -78,7 +87,9 @@ def gen_data(count:int, start_index:int):
     inspect.show_images([samples], f'./results/gen.png')
 
 if __name__ == '__main__':  
-    show_latent_change_grid()
+    #show_latent_change_grid()
     #show_latents(44)
     # gen_data(50, 5000)
     #continue_training(ckpt)
+    #train()
+    train_decoder()

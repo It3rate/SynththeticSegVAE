@@ -53,8 +53,11 @@ class SynthDataset(Dataset):
 
         label = self.data.iloc[index, 1]
         gen = self.data.iloc[index, 2:]
+        gen[0] = (gen[0] & 0xFFFFFF) / float(0xFFFFFF)
+        gen[1] = (gen[1] & 0xFFFFFF)/ float(0xFFFFFF)
+        gen[5] = (gen[5] - 6.0) / 14.0
         gen = np.array(gen)
-        gen = gen.astype('float')
+        gen = gen.astype('float32')
         sample = {'filename': filename, 'image_path': image_path, 'image': pixels, 'label':label, 'gen':gen}
         # if self.transform:
         #     sample = self.transform(sample)
@@ -71,8 +74,9 @@ class SynthDataset(Dataset):
         pixels = np.array(pixels.tolist())[:,:,:3]
         pixels = pixels.reshape(32,32,3)/255
         pixels = np.array(pixels, 'float32')
-        tensor:torch.Tensor = SynthDataset.transform(pixels)
-        tensor = tensor.to(torch.device("cuda"))
+        tensor:torch.Tensor = cls.transform(pixels)
+        # DON'T PUT TENSORS ONTO CUDA IN DATASET
+        #tensor = tensor.to(torch.device("cuda"))
         return tensor
 
 
