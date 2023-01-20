@@ -1,17 +1,17 @@
 
 import torch
-import os
 from torchvision import transforms
 from PIL import Image
 from VAE import VAEmodel
+from Utils import Utils
 from SynthDataset import SynthDataset
-from torch.utils.data import Dataset, DataLoader
 
 class TrainVAE:
     def __init__(self, csv_path:str, batch_size:int, model_path:str = ""):
         #os.chdir(os.path.dirname(os.path.abspath(__file__)))
         self.epochs = 1000
         self.output_dir = "./output/"
+        Utils.EnsureFolder(self.output_dir)
         self.device = torch.device("cuda")
         self.dataset = SynthDataset.from_file(csv_path)
         self.train_dataloader, self.test_dataloader = \
@@ -41,7 +41,7 @@ class TrainVAE:
             for batch in self.train_dataloader:
                 img = batch['image'].to(self.device)
                 gen = batch['gen'].to(self.device)
-                label = batch['label'].to(self.device)
+                label_index = batch['label_index'].to(self.device)
                 self.optimizer.zero_grad()
                 recons, input, mu, log_var, _ = self.VAE.forward(img, gen)
                 self.loss = self.VAE.loss_function(recons, input, mu, log_var)
@@ -68,7 +68,8 @@ class TrainDecoder:
     def __init__(self, csv_path:str, batch_size:int, model_path:str = ""):
         #os.chdir(os.path.dirname(os.path.abspath(__file__)))
         self.epochs = 1000
-        self.output_dir = "./output_zKnown/"
+        self.output_dir = "./output_full/"
+        Utils.EnsureFolder(self.output_dir)
         self.device = torch.device("cuda")
         self.dataset = SynthDataset.from_file(csv_path)
         self.train_dataloader, self.test_dataloader = \
@@ -99,7 +100,7 @@ class TrainDecoder:
             for batch in self.train_dataloader:
                 img = batch['image'].to(self.device)
                 gen = batch['gen'].to(self.device)
-                label = batch['label'].to(self.device)
+                label_index = batch['label_index'].to(self.device)
                 self.optimizer.zero_grad()
                 recons = self.model.forward_decode(gen)
                 self.loss = self.model.loss_decode(recons, img)

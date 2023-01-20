@@ -1,23 +1,24 @@
 
 import os
 import torch
-import random
-from InspectData import InspectData
-from SkiaGen import SkiaGen
-from VAE import VAEmodel
-from SynthDataset import SynthDataset
-from Train import TrainVAE, TrainDecoder
+import numpy as np
 from torchvision import transforms
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
+from Utils import Utils
+from InspectData import InspectData
+from SkiaGen import SkiaGen
+from VAE import VAEmodel
+from SynthDataset import SynthDataset
+from Train import TrainVAE, TrainDecoder
 
 ckpt = './output/checkpoint_org.pt'
 csv_path = './data/params.csv'
 batch_size = 30
 inspect = InspectData()
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+Utils.SetHomeAsFileRoot()
 
 def train():
     vaeTrain = TrainVAE(csv_path, batch_size)
@@ -39,8 +40,10 @@ def show_samples():
     
 
 def show_latent_change_full(index):
+    path = f'./data/img_{index}.png'
+    Utils.EnsureFolder(path)
     vae = VAEmodel.create_with_checkpoint(ckpt)
-    input = SynthDataset.image_to_input(f'./data/img_{index}.png')
+    input = SynthDataset.image_to_input(path)
     input = input.cuda()
     mu, log_var = vae.encode(input.unsqueeze(0))
     z_org = vae.reparameterize(mu, log_var)
@@ -50,10 +53,9 @@ def show_latent_change_decoder(index):
     dataset = SynthDataset.from_file(csv_path)
     gen = dataset.gen_from_index(index)
     gen = torch.from_numpy(gen)
-    print(gen)
     gen = gen.unsqueeze(0)
-    checkpoint = './output_zKnown/checkpoint_100.pt'
-    model = VAEmodel.create_decoder_with_checkpoint(checkpoint)
+    path = './output_zKnown/checkpoint_100.pt'
+    model = VAEmodel.create_decoder_with_checkpoint(path)
     show_latent_change_grid(model, gen, index)
     
 def show_latent_change_grid(model, latent, index:int):
@@ -65,14 +67,14 @@ def show_latent_change_grid(model, latent, index:int):
         row = list()
         imgs.append(row)
         z = latent.clone()
-        val = float(z[0,j].cpu().detach().numpy())
+        #val = float(z[0,j].cpu().detach().numpy())
         #j2 = j+1 if j < 6 else 0
-        #val2 = z[0,j2].cpu().detach().numpy()
+        #val2 = float(z[0,j2].cpu().detach().numpy())
         for i in range(count):
             offset = ((maxs[j] - mins[j]) / float(count)) * i + mins[j]
             z[0,j] =  offset#val + (i-count//2) * .5
-            #z[0,j2] =  val2 + (i-count//2) * .6
-            print(val, z.cpu().detach().numpy()[0,2:])
+            #z[0,j2] =  val2 + (i-count//2) * .1
+            print(i, z.cpu().detach().numpy()[0,2:])
             img = model.sample_with_z(z)
             img_pil:Image.Image = transforms.ToPILImage()(img)
             #if i == 4:
@@ -86,10 +88,6 @@ def show_latents(index):
     mu, log_var = vae.encode(input.unsqueeze(0))
     mu = mu.cpu().detach().numpy()[0]
     log_var = log_var.cpu().detach().numpy()[0]
-    print(mu)
-    print(log_var)
-    # mu = [1,2,3,4,5,6,7]
-    # log_var = [3,2,3,4,2,3,1]
     x = np.linspace(-2.5, 2.5, 1000)
     for mean, lv in zip(mu, log_var):
         std = np.exp(0.5*lv)
@@ -100,15 +98,17 @@ def show_latents(index):
     plt.show()
 
 def gen_data(count:int, start_index:int):
-    samples = SkiaGen.gen_data(count, start_index)
-    inspect.show_images([samples], f'./results/gen.png')
+    folder_path = './data'
+    gen = SkiaGen()
+    samples = gen.gen_data(folder_path, count)
+    #inspect.show_images([samples], f'{folder_path}/_gen.png')
 
 if __name__ == '__main__':  
-    #random.seed(10)
+    #np.random.seed(10)
     #show_latent_change_full(706)
-    show_latent_change_decoder(458)
+    #show_latent_change_decoder(458)
     #show_latents(44)
-    #gen_data(5000, 0)
+    gen_data(150, 0)
     #continue_training(ckpt)
     #train()
     #train_decoder()

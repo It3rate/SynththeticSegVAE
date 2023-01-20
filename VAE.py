@@ -4,6 +4,7 @@ from torch import nn
 from PIL import Image
 from torchvision import transforms
 import numpy as np
+from Utils import Utils
 
 class VAEmodel(nn.Module):
     def __init__(self, latent_dims, hidden_dims, image_shape, create_model = True):
@@ -90,6 +91,7 @@ class VAEmodel(nn.Module):
 
     @classmethod
     def create_with_checkpoint(cls, model_path:str):
+        Utils.EnsureFolder(model_path)
         vae = VAEmodel(latent_dims=7, hidden_dims=[32, 64, 64], image_shape=[3,32,32])
         vae = vae.to(torch.device("cuda"))
         checkpoint = torch.load(model_path)
@@ -104,6 +106,7 @@ class VAEmodel(nn.Module):
     
     @classmethod
     def create_decoder_with_checkpoint(cls, model_path:str):
+        Utils.EnsureFolder(model_path)
         model = cls.new_decoder()
         model = model.to(torch.device("cuda"))
         checkpoint = torch.load(model_path)

@@ -51,14 +51,14 @@ class SynthDataset(Dataset):
         image_path = os.path.join(self.root_dir, filename)
         pixels = self.image_to_input(image_path)
 
-        label = self.data.iloc[index, 1]
+        label_index = self.data.iloc[index, 1]
         gen = self.data.iloc[index, 2:]
         gen[0] = (gen[0] & 0xFFFFFF) / float(0xFFFFFF)
         gen[1] = (gen[1] & 0xFFFFFF)/ float(0xFFFFFF)
         gen[5] = (gen[5] - 6.0) / 14.0
         gen = np.array(gen)
         gen = gen.astype('float32')
-        sample = {'filename': filename, 'image_path': image_path, 'image': pixels, 'label':label, 'gen':gen}
+        sample = {'filename': filename, 'image_path': image_path, 'image': pixels, 'label_index':label_index, 'gen':gen}
         # if self.transform:
         #     sample = self.transform(sample)
         return sample
@@ -92,14 +92,12 @@ class SynthDataset(Dataset):
     def getDrawParams(self, index):
         ar = self[index]
         filename = ar['filename']
-        label = ar['label']
+        label_index = ar['label_index']
         gen = ar['gen']
-        print(gen)
         fCol = gen[0]
         sCol = gen[1]
         sW = gen[2]
         loc = Point(gen[3], gen[4])
         sza = SizeAspect(gen[5], gen[6])
 
-        dp = DrawParams(filename, label, fCol, sCol, sW, loc, sza)
-        print(dp)
+        dp = DrawParams(filename, label_index, fCol, sCol, sW, loc, sza)

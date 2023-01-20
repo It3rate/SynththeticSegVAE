@@ -1,4 +1,15 @@
+import os
 
+class Utils:
+    @classmethod
+    def SetHomeAsFileRoot(cls):
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+    @classmethod
+    def EnsureFolder(cls, path):
+        folder_path = os.path.dirname(path)
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
 
 class Point:
     def __init__(self,x,y):
