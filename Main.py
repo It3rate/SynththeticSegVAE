@@ -53,20 +53,24 @@ def show_latent_change_full(index):
     z_org = vae.reparameterize(mu, log_var)
     show_latent_change_grid(vae, z_org, index)
 
-def show_latent_change_decoder(index):
+def show_latent_change_decoder(index, ckpt_path):
     dataset = SynthDataset.from_file(csv_path)
     gen = dataset.gen_from_index(index)
+    show_decoder_gen(gen, index)
+
+def show_decoder_gen(gen, ckpt_path, index=0):
     gen = torch.from_numpy(gen)
     gen = gen.unsqueeze(0)
-    path = './output_full/checkpoint_220.pt'
-    model = VAEmodel.create_decoder_with_checkpoint(path)
-    show_latent_change_grid(model, gen, index)
+    model = VAEmodel.create_decoder_with_checkpoint(ckpt_path)
+    imgs = show_latent_change_grid(model, gen)
+    folder = Utils.GetFolder(ckpt_path)
+    inspect.show_images(imgs, f'{folder}/_sep{index}.png')
     
-def show_latent_change_grid(model, latent, index:int):
+def show_latent_change_grid(model, latent):
     count = 20
     imgs = list()
-    mins = [0,0,0,0,1,1, 0, -.6]
-    maxs = [1,1,1,1,1,1, .8, .6]
+    mins = [.1, 0, 0,0,  -1,-1,  0, -.8]
+    maxs = [.7, 1, 1,1,   1, 1, .6, .8]
     for j in range(8):
         row = list()
         imgs.append(row)
@@ -78,13 +82,12 @@ def show_latent_change_grid(model, latent, index:int):
             offset = ((maxs[j] - mins[j]) / float(count)) * i + mins[j]
             z[0,j] =  offset#val + (i-count//2) * .5
             #z[0,j2] =  val2 + (i-count//2) * .1
-            print(i, z.cpu().detach().numpy()[0,2:])
+            #print(i, z.cpu().detach().numpy()[0,2:])
             img = model.sample_with_z(z)
             img_pil:Image.Image = transforms.ToPILImage()(img)
             #if i == 4:
             row.append(img_pil)
-
-    inspect.show_images(imgs, f'./results/sep_{index}.png')
+    return imgs
 
 def show_latents(index):
     vae = VAEmodel.create_with_checkpoint(ckpt)
@@ -112,11 +115,16 @@ csv_path = './data/params.csv'
 
 if __name__ == '__main__':  
     np.random.seed(10)
-    #show_latent_change_full(706)
-    #show_latent_change_decoder(48)
-    #show_latents(44)
-    #continue_training(ckpt)
-    #train()
-    train_decoder()
-    #continue_decoder_training('./output_full8/checkpoint_110.pt')
     #gen_data(5000, 0)
+    #show_latents(44)
+
+    #train()
+    #continue_training(ckpt)
+    #show_latent_change_full(706)
+    
+    #train_decoder()
+    #continue_decoder_training('./output_full8/checkpoint_140.pt')
+    #show_latent_change_decoder(286, './output_full8/checkpoint_140.pt')
+
+    ar = np.array([0.4, 0.4,0.2,0.7, -.4,.6,.3,-.2], 'float32')
+    show_decoder_gen(ar, './output_full8/checkpoint_140.pt')

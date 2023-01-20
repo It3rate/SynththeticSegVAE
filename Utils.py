@@ -6,6 +6,10 @@ class Utils:
         os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
     @classmethod
+    def GetFolder(cls, path):
+        return os.path.dirname(path)
+
+    @classmethod
     def EnsureFolder(cls, path):
         folder_path = os.path.dirname(path)
         if not os.path.exists(folder_path):

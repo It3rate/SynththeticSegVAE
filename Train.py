@@ -81,7 +81,7 @@ class TrainDecoder:
         self.model = VAEmodel(latent_dims=8, hidden_dims=[32, 64, 64], image_shape=[3,32,32], create_model=False)
         self.model.create_decoder()
         self.model = self.model.to(self.device)
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-3)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-4)
         
     def resume(self, model_path:str):
         self.model_path = model_path
