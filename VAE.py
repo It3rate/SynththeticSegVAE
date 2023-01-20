@@ -92,7 +92,7 @@ class VAEmodel(nn.Module):
     @classmethod
     def create_with_checkpoint(cls, model_path:str):
         Utils.EnsureFolder(model_path)
-        vae = VAEmodel(latent_dims=7, hidden_dims=[32, 64, 64], image_shape=[3,32,32])
+        vae = VAEmodel(latent_dims=8, hidden_dims=[32, 64, 64], image_shape=[3,32,32])
         vae = vae.to(torch.device("cuda"))
         checkpoint = torch.load(model_path)
         vae.load_state_dict(checkpoint['model_state_dict'])
@@ -100,7 +100,7 @@ class VAEmodel(nn.Module):
     
     @classmethod
     def new_decoder(cls):
-        self = VAEmodel(latent_dims=7, hidden_dims=[32, 64, 64], image_shape=[3,32,32], create_model=False)
+        self = VAEmodel(latent_dims=8, hidden_dims=[32, 64, 64], image_shape=[3,32,32], create_model=False)
         self.create_decoder()
         return self
     

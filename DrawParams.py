@@ -21,9 +21,10 @@ class DrawParams:
         self.aabb = aabb
         
     def to_normalized(self):
+        li = self.from_label_index(self.label_index)
         x, y = self.from_location(self.locationX, self.locationY, self.aabb)
         w, h  = self.from_location(self.width, self.height, self.aabb)
-        return DrawParamsNorm(self.image_path, self.label_index, self.from_color(self.fillColor), self.from_color(self.strokeColor), self.from_stroke_width(self.strokeWidth),x,y,w,h)
+        return DrawParamsNorm(self.image_path, li, self.from_color(self.fillColor), self.from_color(self.strokeColor), self.from_stroke_width(self.strokeWidth),x,y,w,h)
 
     @classmethod
     def color_to_skia(cls, color_number, saturation, lightness):
@@ -32,6 +33,10 @@ class DrawParams:
         col = tuple(int(i * 255) for i in col)
         col = skia.Color(*col)
         return col
+    
+    @classmethod
+    def from_label_index(cls, value:int)->float:
+        return value / 10.0
     
     @classmethod
     def from_color(cls, value:int)->float:
@@ -65,13 +70,18 @@ class DrawParamsNorm:
         self.aabb = aabb
 
     def to_drawable(self):
+        li = self.to_label_index(self.label_index)
         x, y = self.to_location(self.locationX, self.locationY, self.aabb)
         w, h  = self.to_size(self.width, self.hScale, self.aabb)
-        return DrawParams(self.image_path, self.label_index, self.to_color(self.fillColor), self.to_color(self.strokeColor), self.to_stroke_width(self.strokeWidth),x,y,w,h)
+        return DrawParams(self.image_path, li, self.to_color(self.fillColor), self.to_color(self.strokeColor), self.to_stroke_width(self.strokeWidth),x,y,w,h)
     
     @classmethod  
     def data_description(cls):
         return ["filename", "label_index", "fillColor", "strokeColor", "strokeWidth","x","y","w","hScale"]
+    
+    @classmethod
+    def to_label_index(cls, value:float)->int:
+        return int(value * 10.0)
     
     @classmethod
     def to_color(cls, value:float):
@@ -95,6 +105,6 @@ class DrawParamsNorm:
         return [filename, self.label_index, self.fillColor, self.strokeColor, self.strokeWidth,self.locationX,self.locationY,self.width,self.hScale]
 
     def __str__(self):
-        return f"[(]{self.image_path}, {self.label_index}, fCol:{self.fillColor}, sCol:{self.strokeColor}, sW:{self.strokeWidth:.2f}, \
-                    loc:({self.locationX},{self.locationY}), sz:({self.width},hs{self.hScale})]"
+        return f"[(]{self.image_path:.2f}, {self.label_index:.2f}, fCol:{self.fillColor:.2f}, sCol:{self.strokeColor:.2f}, sW:{self.strokeWidth:.2f}, \
+                    loc:({self.locationX:.2f},{self.locationY:.2f}), sz:({self.width:.2f},hs{self.hScale:.2f})]"
 

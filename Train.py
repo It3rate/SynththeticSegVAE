@@ -20,7 +20,7 @@ class TrainVAE:
         
         self.loss:torch.Tensor
         self.start_epoch = 0
-        self.VAE = VAEmodel(latent_dims=7, hidden_dims=[32, 64, 64], image_shape=[3,32,32])
+        self.VAE = VAEmodel(latent_dims=8, hidden_dims=[32, 64, 64], image_shape=[3,32,32])
         self.VAE = self.VAE.to(self.device)
         self.optimizer = torch.optim.Adam(self.VAE.parameters(), lr=1e-3)
         
@@ -68,7 +68,7 @@ class TrainDecoder:
     def __init__(self, csv_path:str, batch_size:int, model_path:str = ""):
         #os.chdir(os.path.dirname(os.path.abspath(__file__)))
         self.epochs = 1000
-        self.output_dir = "./output_full/"
+        self.output_dir = "./output_full8/"
         Utils.EnsureFolder(self.output_dir)
         self.device = torch.device("cuda")
         self.dataset = SynthDataset.from_file(csv_path)
@@ -78,7 +78,7 @@ class TrainDecoder:
         
         self.loss:torch.Tensor
         self.start_epoch = 0
-        self.model = VAEmodel(latent_dims=7, hidden_dims=[32, 64, 64], image_shape=[3,32,32], create_model=False)
+        self.model = VAEmodel(latent_dims=8, hidden_dims=[32, 64, 64], image_shape=[3,32,32], create_model=False)
         self.model.create_decoder()
         self.model = self.model.to(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-3)
@@ -100,7 +100,6 @@ class TrainDecoder:
             for batch in self.train_dataloader:
                 img = batch['image'].to(self.device)
                 gen = batch['gen'].to(self.device)
-                label_index = batch['label_index'].to(self.device)
                 self.optimizer.zero_grad()
                 recons = self.model.forward_decode(gen)
                 self.loss = self.model.loss_decode(recons, img)
@@ -108,16 +107,17 @@ class TrainDecoder:
                 self.optimizer.step()
 
             print(f"Epoch: {epoch+1}         Loss: {self.loss:.4f}")
-            if (epoch+1)%20==0:
+            if (epoch+1)%2==0:
                 org_img = Image.open(batch["image_path"][0]) 
                 org_img.save(f"{self.output_dir}org_{epoch+1}.png")
                 img_pil:Image.Image = transforms.ToPILImage()(recons[0])
                 img_pil.save(f"{self.output_dir}gen_{epoch+1}.png")
                 #print(recons.shape)
-                self.model_path = f'{self.output_dir}checkpoint_{epoch+1}.pt'
-                torch.save({
-                    'model_state_dict': self.model.state_dict(),
-                    'optimizer_state_dict': self.optimizer.state_dict(),
-                    'epoch': epoch,
-                    'loss': self.loss
-                }, self.model_path)
+                if (epoch+1)%20==0:
+                    self.model_path = f'{self.output_dir}checkpoint_{epoch+1}.pt'
+                    torch.save({
+                        'model_state_dict': self.model.state_dict(),
+                        'optimizer_state_dict': self.optimizer.state_dict(),
+                        'epoch': epoch,
+                        'loss': self.loss
+                    }, self.model_path)

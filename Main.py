@@ -14,8 +14,6 @@ from VAE import VAEmodel
 from SynthDataset import SynthDataset
 from Train import TrainVAE, TrainDecoder
 
-ckpt = './output/checkpoint_org.pt'
-csv_path = './data/params.csv'
 batch_size = 30
 inspect = InspectData()
 Utils.SetHomeAsFileRoot()
@@ -24,14 +22,20 @@ def train():
     vaeTrain = TrainVAE(csv_path, batch_size)
     vaeTrain.train()
 
-def train_decoder():
-    decoderTrain = TrainDecoder(csv_path, batch_size)
-    decoderTrain.train()
-
 def continue_training(model_path:str):
     vaeTrain = TrainVAE(csv_path, batch_size)
     vaeTrain.resume(ckpt)
     vaeTrain.train()
+
+
+def train_decoder():
+    decoderTrain = TrainDecoder(csv_path, batch_size)
+    decoderTrain.train()
+
+def continue_decoder_training(model_path:str):
+    decoderTrain = TrainDecoder(csv_path, batch_size)
+    decoderTrain.resume(model_path)
+    decoderTrain.train()
 
 def show_samples():
     vae = VAEmodel.create_with_checkpoint(ckpt)
@@ -54,16 +58,16 @@ def show_latent_change_decoder(index):
     gen = dataset.gen_from_index(index)
     gen = torch.from_numpy(gen)
     gen = gen.unsqueeze(0)
-    path = './output_zKnown/checkpoint_100.pt'
+    path = './output_full/checkpoint_220.pt'
     model = VAEmodel.create_decoder_with_checkpoint(path)
     show_latent_change_grid(model, gen, index)
     
 def show_latent_change_grid(model, latent, index:int):
     count = 20
-    imgs = list()#np.zeros(count * 7)
-    mins = [-.4, 0, .2, -6,-6, 0, .9]
-    maxs = [1.0, 1, 4,  6,  6, 1, 2.5]
-    for j in range(7):
+    imgs = list()
+    mins = [0,0,0,0,1,1, 0, -.6]
+    maxs = [1,1,1,1,1,1, .8, .6]
+    for j in range(8):
         row = list()
         imgs.append(row)
         z = latent.clone()
@@ -103,12 +107,16 @@ def gen_data(count:int, start_index:int):
     samples = gen.gen_data(folder_path, count)
     #inspect.show_images([samples], f'{folder_path}/_gen.png')
 
+ckpt = './output/checkpoint_org.pt'
+csv_path = './data/params.csv'
+
 if __name__ == '__main__':  
-    #np.random.seed(10)
+    np.random.seed(10)
     #show_latent_change_full(706)
-    #show_latent_change_decoder(458)
+    #show_latent_change_decoder(48)
     #show_latents(44)
-    #gen_data(5000, 0)
     #continue_training(ckpt)
     #train()
     train_decoder()
+    #continue_decoder_training('./output_full8/checkpoint_110.pt')
+    #gen_data(5000, 0)

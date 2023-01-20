@@ -51,11 +51,8 @@ class SynthDataset(Dataset):
         image_path = os.path.join(self.root_dir, filename)
         pixels = self.image_to_input(image_path)
         label_index = self.data.iloc[index, 1]
-
-        gen = self.data.iloc[index, 2:]
-        gen = np.array(gen)
-        gen = gen.astype('float32')
-        sample = {'filename': filename, 'image_path': image_path, 'image': pixels, 'label_index':label_index, 'gen':gen}
+        gen = self.gen_from_index(index)
+        sample = {'filename': filename, 'image_path': image_path, 'image': pixels, 'gen':gen}
         # if self.transform:
         #     sample = self.transform(sample)
         return sample
@@ -65,6 +62,12 @@ class SynthDataset(Dataset):
     #     pixels = np.array(pixels, 'float32')
     #     pixels = self.transform(pixels)
 
+    def gen_from_index(self, index):
+        gen = self.data.iloc[index, 1:]
+        gen = np.array(gen)
+        gen = gen.astype('float32')
+        return gen
+    
     @classmethod
     def image_to_input(cls, image_path):
         pixels = io.imread(image_path)
@@ -76,14 +79,6 @@ class SynthDataset(Dataset):
         #tensor = tensor.to(torch.device("cuda"))
         return tensor
     
-    def gen_from_index(self, index):
-        gen = self.data.iloc[index, 2:]
-        gen[0] = (gen[0] & 0xFFFFFF) / float(0xFFFFFF)
-        gen[1] = (gen[1] & 0xFFFFFF)/ float(0xFFFFFF)
-        gen[5] = (gen[5] - 6.0) / 14.0
-        gen = np.array(gen)
-        gen = gen.astype('float32')
-        return gen
 
 
     def getDrawParams(self, index):

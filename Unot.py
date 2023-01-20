@@ -26,6 +26,8 @@ class Unot:
     def as_range(self):
         return [-self.imag, self.real]
     
+    def int_sample(self):
+        return np.random.randint(int(self.min_value()), int(self.max_value()))
     
     def uniform_sample(self):
         return np.random.uniform(self.min_value(), self.max_value())

@@ -9,7 +9,7 @@ class Concept:
 
     labels = ["full", "apple", "apple2","orange","box", "banana"]
 
-    def __init__(self, label:str, shapeIndex:int, fillColor:Unot, strokeColor:Unot, strokeWidth:Unot, locationX:Unot, locationY:Unot, width:Unot, hScale:Unot):
+    def __init__(self, label:str, shapeIndex:Unot, fillColor:Unot, strokeColor:Unot, strokeWidth:Unot, locationX:Unot, locationY:Unot, width:Unot, hScale:Unot):
         self.label = label
         self.label_index = self.labels.index(self.label)
         self.shapeIndex = shapeIndex
@@ -23,10 +23,10 @@ class Concept:
 
     @classmethod
     def init_as_full_range(cls):
-        return Concept("full", 0, Unot(0,1), Unot(0,1), Unot(0,1), Unot(1, 1), Unot(1, 1), Unot(-.2, .6), Unot(.3, .3))
+        return Concept("full", Unot(1,6), Unot(0,1), Unot(0,1), Unot(0,1), Unot(1, 1), Unot(1, 1), Unot(-.2, .6), Unot(.3, .3))
     
     def gen_as_ranges(self):
-        return [self.fillColor.as_range(), self.strokeColor.as_range(), self.strokeWidth.as_range(), \
+        return [self.fillColor.as_range(), self.fillColor.as_range(), self.strokeColor.as_range(), self.strokeWidth.as_range(), \
                 self.locationX.as_range(), self.locationY.as_range(), self.width.as_range(), self.hScale.as_range()]
     def gen_as_mean_std(self):
         return [self.fillColor.mean_std(), self.strokeColor.mean_std(), self.strokeWidth.mean_std(), \
@@ -44,7 +44,7 @@ class Concept:
 
     @classmethod
     def random_label_index(cls):
-        return np.random.randint(1, len(cls.labels))
+        return DrawParams.from_label_index(np.random.randint(1, len(cls.labels)))
     
     # @classmethod
     # def symnorms_to_color_range(cls, unot_value:Unot):
