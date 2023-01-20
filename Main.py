@@ -70,21 +70,24 @@ def show_decoder_gen(gen, ckpt_path, index=0):
 def show_latent_change_grid(model, latent):
     count = 20
     imgs = list()
-    mins = [0, 0, 0,0,  -1,-1,  0, -.8]
-    maxs = [1, 1, 1,1,   1, 1, .6, .8]
-    for j in range(8):
+    mins = [0,0,0,  -1,-1,  0, -.8]
+    maxs = [1,1,1,   1, 1, .6,  .8]
+    for j_index in range(3, 10):
         row = list()
         imgs.append(row)
         z = latent.clone()
+        
+        j = j_index - 3
         #val = float(z[0,j].cpu().detach().numpy())
         #j2 = j+1 if j < 6 else 0
         #val2 = float(z[0,j2].cpu().detach().numpy())
         for i in range(count):
             offset = ((maxs[j] - mins[j]) / float(count)) * i + mins[j]
-            z[0,j] =  offset#val + (i-count//2) * .5
+            z[0,j_index] =  offset#val + (i-count//2) * .5
             #z[0,j2] =  val2 + (i-count//2) * .1
             #print(i, z.cpu().detach().numpy()[0,2:])
             img = model.sample_with_z(z)
+            #img = model.sample(1)[0]
             img_pil:Image.Image = transforms.ToPILImage()(img)
             #if i == 4:
             row.append(img_pil)
@@ -124,9 +127,9 @@ if __name__ == '__main__':
     #show_latent_change_full(706)
     
     decoder_path = "./output_ohe"#output_full_ohe"
-    train_decoder(f"{decoder_path}")
-    #continue_decoder_training(f'{decoder_path}/checkpoint_280.pt')
-    #show_latent_change_decoder(286, f'{decoder_path}/checkpoint_200.pt')
+    #train_decoder(f"{decoder_path}")
+    #continue_decoder_training(f'{decoder_path}/checkpoint_140.pt')
+    show_latent_change_decoder(60, f'{decoder_path}/checkpoint_340.pt')
 
-    # ar = np.array([0.4, 0.4,0.2,0.7, -.4,.6,.3,-.2], 'float32')
+    # ar = np.array([ 1.0000,  0.0000,  0.0000,  0.9534,  0.0039,  0.5122,  0.6252,  0.2251,   0.4887, -0.1249], 'float32')
     # show_decoder_gen(ar, f'{decoder_path}/checkpoint_140.pt')

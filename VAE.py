@@ -180,8 +180,9 @@ class VAEmodel(nn.Module):
         if isinstance(z, np.ndarray):
             z = torch.from_numpy(z)
         z = z.unsqueeze(0)
+        z = z[0]
         z = z.to(self.device)
-        z = z.detach() 
+        #z = z.detach() 
         sample = self.decode(z)
         return sample.cpu().detach()[0]
         

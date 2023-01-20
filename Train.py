@@ -22,7 +22,7 @@ class TrainVAE:
         self.start_epoch = 0
         self.VAE = VAEmodel(latent_dims=VAEmodel.latent_dimensions, hidden_dims=[32, 64, 64], image_shape=[3,32,32])
         self.VAE = self.VAE.to(self.device)
-        self.optimizer = torch.optim.Adam(self.VAE.parameters(), lr=1e-3)
+        self.optimizer = torch.optim.Adam(self.VAE.parameters(), lr=1e-4)
         
     def resume(self, model_path:str):
         self.model_path = model_path

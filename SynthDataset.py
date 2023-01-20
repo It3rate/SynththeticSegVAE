@@ -42,7 +42,7 @@ class SynthDataset(Dataset):
         return (train_dataloader, test_dataloader)
 
     def __len__(self):
-        return 10 #VAEmodel.latent_dimensions# len(self.data)
+        return len(self.data)
 
     def __getitem__(self, index):
         if torch.is_tensor(index):
