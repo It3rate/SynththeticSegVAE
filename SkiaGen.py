@@ -1,16 +1,18 @@
+from tkinter import Canvas
 import skia
-from DrawParams import DrawParams
+import csv
+import numpy as np
+from PIL import Image
+from DrawParams import DrawParams, DrawParamsNorm
 from Concept import Concept
 from Unot import Unot
-from PIL import Image
-import csv
-import random
+from Utils import Utils
 
 class SkiaGen:
-    px = 32
-    def __init__(self):
-        self.surface = skia.Surface(self.px, self.px)
 
+    def __init__(self, px=32):
+        self.px = px
+        self.surface = skia.Surface(self.px, self.px)
 
     def draw(self, dp : DrawParams):
         with self.surface as canvas:
@@ -18,32 +20,31 @@ class SkiaGen:
             canvas.save()
             canvas.translate(self.px / 2.0, self.px / 2.0)
             fill = skia.Paint(
-                Color=dp.fillColor,
+                Color=dp.skiaFillColor,
                 Style=skia.Paint.kFill_Style)
             self._drawShape(canvas, dp, fill)
 
             stroke = skia.Paint(
                 AntiAlias=True,
                 Style=skia.Paint.Style.kStroke_Style,
-                Color=dp.strokeColor,
+                Color=dp.skiaStrokeColor,
                 StrokeWidth=dp.strokeWidth,
                 StrokeCap=skia.Paint.Cap.kRound_Cap)
             self._drawShape(canvas, dp, stroke)
             canvas.restore()
         return self.surface.makeImageSnapshot()
 
-    def _drawShape(self, canvas, dp, paint):
-        w = dp.size.w
-        h = w * dp.size.hScale
-        x = dp.location.x - w / 2.0
-        y = dp.location.y - h / 2.0
-        #print(x)
+    def _drawShape(self, canvas:skia.Canvas, dp:DrawParams, paint:skia.Paint):
+        xDir = 1 if dp.width > 0 else -1
+        yDir = 1 if dp.height > 0 else -1
+        w = abs(dp.width)
+        h = abs(dp.height)
+        x = dp.locationX - w/2.0
+        y = dp.locationY - h/2.0
         rect = skia.Rect(x, y, x + w, y + h)
-        if(dp.label == 0):
+        if(dp.label_index == 4):
             canvas.drawRect(rect, paint)
-        elif(dp.label == 1):
-            canvas.drawOval(rect, paint)
-        else:
+        elif(dp.label_index == 5):
             r1 = 6
             r2 = 6 + w
             path = skia.Path()
@@ -52,6 +53,30 @@ class SkiaGen:
             # path.arcTo(x - r1, y - r1, x + r1, y + r1, 0, -180, True)
             path.close()
             canvas.drawPath(path, paint)
+        else:
+            canvas.drawOval(rect, paint)
+
+    def gen_data(self, folder_path:str, count:int, start_index:int = 0):
+        path = f'{folder_path}/params.csv'
+        Utils.EnsureFolder(path)
+        gen = SkiaGen()
+        concept = Concept.init_as_full_range()
+        lst = []
+        with open(path, 'w', newline='\n') as file:
+                writer = csv.writer(file)
+                writer.writerow(DrawParamsNorm.data_description())
+                for i in range(count):
+                    index = start_index + i
+                    dp = concept.gen_uniform_samples()
+                    image = gen.draw(dp.to_drawable())
+                    filename = f"img_{index}.png"
+                    save_path = f"{folder_path}/{filename}"
+                    image.save(save_path)
+                    writer.writerow(dp.csv(filename))
+                    if len(lst) < 25:
+                        img_pil = Image.open(save_path) 
+                        lst.append(img_pil)
+        return lst
 
     @classmethod
     def get_concepts(cls):
@@ -62,19 +87,23 @@ class SkiaGen:
             Concept("box", 0, Unot(-.6j,.8), Unot(-.5j,.7),     Unot(-2j,4),    Unot(6j,6), Unot(6j,6), Unot(-10j,20), Unot(-.95j,1.05)),
             Concept("banana", 2, Unot(-.11j,.16), Unot(-.01j,.2), Unot(-.8j,2), Unot(6j,6), Unot(6j,6), Unot(-8j,10), Unot(-1.5j,2.5))
         ]
+    
+
     @classmethod
-    def gen_data(cls, count:int, start_index:int = 0):
+    def gen_dataX(cls, count:int, start_index:int = 0):
+        path = 'data/params.csv'
+        Utils.EnsureFolder(path)
         gen = SkiaGen()
         concepts = cls.get_concepts()
         #dp = DrawParams("test", skia.ColorYELLOW, skia.ColorBLUE, 3, Size(8,12), Point(10, 5)) 
         #dp = DrawParams("test", skia.Color(0, 136, 0), skia.Color(220, 136, 0), 5, Point(10, 5), Size(8,12)) 
         lst = []
-        with open('data/params.csv', 'w', newline='\n') as file:
+        with open(path, 'w', newline='\n') as file:
                 writer = csv.writer(file)
                 writer.writerow(DrawParams.data_description())
                 for i in range(count):
                     index = start_index + i
-                    dp = random.choice(concepts).sampleParams()
+                    dp = np.random.choice(concepts).sample_params()
                     image = gen.draw(dp)
                     filename = f"img_{index}.png"
                     save_path = f"./data/{filename}"
