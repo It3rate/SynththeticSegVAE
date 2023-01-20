@@ -7,6 +7,9 @@ import numpy as np
 from Utils import Utils
 
 class VAEmodel(nn.Module):
+
+    latent_dimensions = 10
+
     def __init__(self, latent_dims, hidden_dims, image_shape, create_model = True):
         super(VAEmodel, self).__init__()
         
@@ -92,7 +95,7 @@ class VAEmodel(nn.Module):
     @classmethod
     def create_with_checkpoint(cls, model_path:str):
         Utils.EnsureFolder(model_path)
-        vae = VAEmodel(latent_dims=8, hidden_dims=[32, 64, 64], image_shape=[3,32,32])
+        vae = VAEmodel(latent_dims=cls.latent_dimensions, hidden_dims=[32, 64, 64], image_shape=[3,32,32])
         vae = vae.to(torch.device("cuda"))
         checkpoint = torch.load(model_path)
         vae.load_state_dict(checkpoint['model_state_dict'])
@@ -100,7 +103,7 @@ class VAEmodel(nn.Module):
     
     @classmethod
     def new_decoder(cls):
-        self = VAEmodel(latent_dims=8, hidden_dims=[32, 64, 64], image_shape=[3,32,32], create_model=False)
+        self = VAEmodel(latent_dims=cls.latent_dimensions, hidden_dims=[32, 64, 64], image_shape=[3,32,32], create_model=False)
         self.create_decoder()
         return self
     

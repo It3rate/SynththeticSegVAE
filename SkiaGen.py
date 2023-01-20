@@ -42,9 +42,9 @@ class SkiaGen:
         x = dp.locationX - w/2.0
         y = dp.locationY - h/2.0
         rect = skia.Rect(x, y, x + w, y + h)
-        if(dp.label_index == 4):
+        if(dp.label_index <= 3):
             canvas.drawRect(rect, paint)
-        elif(dp.label_index == 5):
+        elif(dp.label_index <= 6):
             r1 = 6
             r2 = 6 + w
             path = skia.Path()

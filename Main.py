@@ -28,12 +28,13 @@ def continue_training(model_path:str):
     vaeTrain.train()
 
 
-def train_decoder():
-    decoderTrain = TrainDecoder(csv_path, batch_size)
+def train_decoder(output_dir:str):
+    decoderTrain = TrainDecoder(csv_path, batch_size, output_dir)
     decoderTrain.train()
 
 def continue_decoder_training(model_path:str):
-    decoderTrain = TrainDecoder(csv_path, batch_size)
+    output_dir = Utils.GetFolder(model_path)
+    decoderTrain = TrainDecoder(csv_path, batch_size, output_dir)
     decoderTrain.resume(model_path)
     decoderTrain.train()
 
@@ -56,7 +57,7 @@ def show_latent_change_full(index):
 def show_latent_change_decoder(index, ckpt_path):
     dataset = SynthDataset.from_file(csv_path)
     gen = dataset.gen_from_index(index)
-    show_decoder_gen(gen, index)
+    show_decoder_gen(gen, ckpt_path, index)
 
 def show_decoder_gen(gen, ckpt_path, index=0):
     gen = torch.from_numpy(gen)
@@ -69,8 +70,8 @@ def show_decoder_gen(gen, ckpt_path, index=0):
 def show_latent_change_grid(model, latent):
     count = 20
     imgs = list()
-    mins = [.1, 0, 0,0,  -1,-1,  0, -.8]
-    maxs = [.7, 1, 1,1,   1, 1, .6, .8]
+    mins = [0, 0, 0,0,  -1,-1,  0, -.8]
+    maxs = [1, 1, 1,1,   1, 1, .6, .8]
     for j in range(8):
         row = list()
         imgs.append(row)
@@ -122,9 +123,10 @@ if __name__ == '__main__':
     #continue_training(ckpt)
     #show_latent_change_full(706)
     
-    #train_decoder()
-    #continue_decoder_training('./output_full8/checkpoint_140.pt')
-    #show_latent_change_decoder(286, './output_full8/checkpoint_140.pt')
+    decoder_path = "./output_ohe"#output_full_ohe"
+    train_decoder(f"{decoder_path}")
+    #continue_decoder_training(f'{decoder_path}/checkpoint_280.pt')
+    #show_latent_change_decoder(286, f'{decoder_path}/checkpoint_200.pt')
 
-    ar = np.array([0.4, 0.4,0.2,0.7, -.4,.6,.3,-.2], 'float32')
-    show_decoder_gen(ar, './output_full8/checkpoint_140.pt')
+    # ar = np.array([0.4, 0.4,0.2,0.7, -.4,.6,.3,-.2], 'float32')
+    # show_decoder_gen(ar, f'{decoder_path}/checkpoint_140.pt')

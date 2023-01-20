@@ -7,11 +7,15 @@ class Utils:
 
     @classmethod
     def GetFolder(cls, path):
-        return os.path.dirname(path)
+        _, file_ext = os.path.splitext(path)
+        if file_ext == "":
+            return path
+        else:
+            return os.path.dirname(path)
 
     @classmethod
     def EnsureFolder(cls, path):
-        folder_path = os.path.dirname(path)
+        folder_path = cls.GetFolder(path)
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 

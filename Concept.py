@@ -7,7 +7,7 @@ from Utils import Point, SizeAspect
 
 class Concept:
 
-    labels = ["full", "apple", "apple2","orange","box", "banana"]
+    labels = ["full","box", "box2", "box3", "banana", "banana2", "banana3", "apple", "apple2","orange",]
 
     def __init__(self, label:str, shapeIndex:Unot, fillColor:Unot, strokeColor:Unot, strokeWidth:Unot, locationX:Unot, locationY:Unot, width:Unot, hScale:Unot):
         self.label = label
@@ -23,7 +23,7 @@ class Concept:
 
     @classmethod
     def init_as_full_range(cls):
-        return Concept("full", Unot(1,6), Unot(0,1), Unot(0,1), Unot(0,1), Unot(1, 1), Unot(1, 1), Unot(-.2, .6), Unot(.3, .3))
+        return Concept("full", Unot(1,10), Unot(0,1), Unot(0,1), Unot(0,1), Unot(1, 1), Unot(1, 1), Unot(-.2, .6), Unot(.3, .3))
     
     def gen_as_ranges(self):
         return [self.fillColor.as_range(), self.fillColor.as_range(), self.strokeColor.as_range(), self.strokeWidth.as_range(), \

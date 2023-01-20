@@ -42,7 +42,7 @@ class SynthDataset(Dataset):
         return (train_dataloader, test_dataloader)
 
     def __len__(self):
-        return len(self.data)
+        return 10 #VAEmodel.latent_dimensions# len(self.data)
 
     def __getitem__(self, index):
         if torch.is_tensor(index):
@@ -50,7 +50,6 @@ class SynthDataset(Dataset):
         filename = str(self.data.iloc[index, 0])
         image_path = os.path.join(self.root_dir, filename)
         pixels = self.image_to_input(image_path)
-        label_index = self.data.iloc[index, 1]
         gen = self.gen_from_index(index)
         sample = {'filename': filename, 'image_path': image_path, 'image': pixels, 'gen':gen}
         # if self.transform:
@@ -64,7 +63,12 @@ class SynthDataset(Dataset):
 
     def gen_from_index(self, index):
         gen = self.data.iloc[index, 1:]
-        gen = np.array(gen)
+        val = gen[0]
+        ohe = [0,0,1] if val < .33 else ([0,1,0] if val < .66 else [[1,0,0]])
+
+        gen = np.array(gen[1:])
+        ohe = np.array(ohe)
+        gen = np.concatenate([ohe, gen], axis=None)
         gen = gen.astype('float32')
         return gen
     

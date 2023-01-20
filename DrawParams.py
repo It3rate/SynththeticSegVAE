@@ -2,6 +2,7 @@ import skia
 from Unot import Unot
 from typing import Tuple
 from colorsys import hls_to_rgb, rgb_to_hls
+import numpy as np
 
 loc_scale = 6.0
 
@@ -36,7 +37,7 @@ class DrawParams:
     
     @classmethod
     def from_label_index(cls, value:int)->float:
-        return value / 10.0
+        return value / 10.0 + np.random.uniform(0, 0.1)
     
     @classmethod
     def from_color(cls, value:int)->float:
