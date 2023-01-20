@@ -50,12 +50,9 @@ class SynthDataset(Dataset):
         filename = str(self.data.iloc[index, 0])
         image_path = os.path.join(self.root_dir, filename)
         pixels = self.image_to_input(image_path)
-
         label_index = self.data.iloc[index, 1]
+
         gen = self.data.iloc[index, 2:]
-        gen[0] = (gen[0] & 0xFFFFFF) / float(0xFFFFFF)
-        gen[1] = (gen[1] & 0xFFFFFF)/ float(0xFFFFFF)
-        gen[5] = (gen[5] - 6.0) / 14.0
         gen = np.array(gen)
         gen = gen.astype('float32')
         sample = {'filename': filename, 'image_path': image_path, 'image': pixels, 'label_index':label_index, 'gen':gen}

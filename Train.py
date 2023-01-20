@@ -9,7 +9,7 @@ from SynthDataset import SynthDataset
 class TrainVAE:
     def __init__(self, csv_path:str, batch_size:int, model_path:str = ""):
         #os.chdir(os.path.dirname(os.path.abspath(__file__)))
-        self.epochs = 1000
+        self.epochs = 10000
         self.output_dir = "./output/"
         Utils.EnsureFolder(self.output_dir)
         self.device = torch.device("cuda")
@@ -108,7 +108,7 @@ class TrainDecoder:
                 self.optimizer.step()
 
             print(f"Epoch: {epoch+1}         Loss: {self.loss:.4f}")
-            if (epoch+1)%10==0:
+            if (epoch+1)%20==0:
                 org_img = Image.open(batch["image_path"][0]) 
                 org_img.save(f"{self.output_dir}org_{epoch+1}.png")
                 img_pil:Image.Image = transforms.ToPILImage()(recons[0])
