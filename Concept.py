@@ -1,4 +1,4 @@
-import skia
+
 import numpy as np
 from colorsys import hls_to_rgb, rgb_to_hls
 from Unot import Unot
@@ -7,12 +7,14 @@ from Utils import Point, SizeAspect
 
 class Concept:
 
-    labels = ["full","box", "box2", "box3", "banana", "banana2", "banana3", "apple", "apple2","orange",]
+    labels = ["cresent", "oval", "triangle", "rectangle", "pentagon", "rsquare"]
 
-    def __init__(self, label:str, shapeIndex:Unot, fillColor:Unot, strokeColor:Unot, strokeWidth:Unot, locationX:Unot, locationY:Unot, width:Unot, hScale:Unot):
+    def __init__(self, label:str, shapeIndex:Unot, rotation:Unot, starness:Unot, fillColor:Unot, strokeColor:Unot, strokeWidth:Unot, 
+                        locationX:Unot, locationY:Unot, width:Unot, hScale:Unot):
         self.label = label
-        self.label_index = self.labels.index(self.label)
         self.shapeIndex = shapeIndex
+        self.rotation = rotation
+        self.starness = starness
         self.fillColor = fillColor
         self.strokeColor = strokeColor
         self.strokeWidth = strokeWidth
@@ -22,108 +24,52 @@ class Concept:
         self.hScale = hScale
 
     @classmethod
+    def get_concepts(cls):
+        return [
+            #                   idx           rotation        starness       fill            stroke        strokeWidth     locX       locY               width          hScale
+            Concept("cresent",  Unot(-.0j,.0), Unot(.0j,.0),   Unot(-.8j,.8), Unot(-.6j,.8),  Unot(-.0j,.1), Unot(0j,1.3),  Unot(.2j,.2), Unot(.2j,.2),  Unot(-.3j,.4),    Unot(.2j,.2)),
+            Concept("oval",     Unot(-.1j,.1), Unot(0j,0),     Unot(0j,.0),   Unot(-.5j,.6),  Unot(-.2j,.2), Unot(0j,1.3),  Unot(.2j,.2), Unot(.2j,.2),  Unot(-.2j,.45),   Unot(.4j,.4)),
+            Concept("triangle", Unot(-.2j,.2), Unot(.6j,.6),   Unot(.1j,.1),  Unot(-.0j,.3),  Unot(-.2j,.3), Unot(0j,1.3),  Unot(.2j,.2), Unot(.2j,.2),  Unot(-.3j,.45),   Unot(2j,.2)),
+            Concept("rectangle",Unot(-.3j,.3), Unot(.0j,.0),   Unot(.2j,.2),  Unot(-.2j,.3),  Unot(-.3j,.4), Unot(0j,1.3),  Unot(.2j,.2), Unot(.2j,.2),  Unot(-.35j,.4),   Unot(.1j,.3)),
+            Concept("pentagon", Unot(-.4j,.4), Unot(.0j,.0),   Unot(.4j,.4),  Unot(-.8j,1),   Unot(-.4j,.5), Unot(.2j,1.4), Unot(.2j,.2), Unot(.2j,.2),  Unot(-.4j,.5),    Unot(.05j,.05)),
+            Concept("rsquare",  Unot(-.5j,.5), Unot(-.2j,.3),  Unot(0j,0),    Unot(-.1j,.1),  Unot(-.5j,.6), Unot(0j,1.2),  Unot(.2j,.2), Unot(.2j,.2),  Unot(-.4j,.5),    Unot(.3j,.3)),
+        ]
+    
+    @classmethod
     def init_as_full_range(cls):
-        return Concept("full", Unot(1,10), Unot(0,1), Unot(0,1), Unot(0,1), Unot(1, 1), Unot(1, 1), Unot(-.2, .6), Unot(.3, .3))
+        si = Unot(0,5)
+        ro = Unot(0,1)
+        st = Unot(1,1)
+        fc = Unot(0,1)
+        sc = Unot(0,1)
+        sw = Unot(0,1)
+        xl = Unot(1,1)
+        yl = Unot(1,1)
+        w = Unot(-.2, .6)
+        hs = Unot(.3, .3)
+        return Concept("full", si, ro, st, fc, sc, sw, xl, yl, w, hs )
     
     def gen_as_ranges(self):
-        return [self.fillColor.as_range(), self.fillColor.as_range(), self.strokeColor.as_range(), self.strokeWidth.as_range(), \
+        return [self.shapeIndex.as_range(), self.rotation.as_range(), self.starness.as_range(), \
+                self.fillColor.as_range(), self.fillColor.as_range(), self.strokeColor.as_range(), self.strokeWidth.as_range(), \
                 self.locationX.as_range(), self.locationY.as_range(), self.width.as_range(), self.hScale.as_range()]
     def gen_as_mean_std(self):
-        return [self.fillColor.mean_std(), self.strokeColor.mean_std(), self.strokeWidth.mean_std(), \
+        return [self.shapeIndex.mean_std(), self.rotation.mean_std(), self.starness.mean_std(), \
+                self.fillColor.mean_std(), self.strokeColor.mean_std(), self.strokeWidth.mean_std(), \
                 self.locationX.mean_std(), self.locationY.mean_std(), self.width.mean_std(), self.hScale.mean_std()]
     
     def gen_uniform_samples(self)->DrawParamsNorm:
-        rnd_label_index = self.random_label_index()
-        return DrawParamsNorm("", rnd_label_index, self.fillColor.uniform_sample(), self.strokeColor.uniform_sample(), self.strokeWidth.uniform_sample(), \
+        rnd_shape_index = self.shapeIndex.uniform_sample() # self.random_shape_index()
+        return DrawParamsNorm("", rnd_shape_index, self.rotation.uniform_sample(), self.starness.uniform_sample(),
+                self.fillColor.uniform_sample(), self.strokeColor.uniform_sample(), self.strokeWidth.uniform_sample(), \
                 self.locationX.uniform_sample(), self.locationY.uniform_sample(), self.width.uniform_sample(), self.hScale.uniform_sample())
     
     def gen_normal_samples(self)->DrawParamsNorm:
-        rnd_label_index = self.random_label_index()
-        return DrawParamsNorm("", rnd_label_index, self.fillColor.normal_sample(), self.strokeColor.normal_sample(), self.strokeWidth.normal_sample(), \
+        rnd_shape_index = self.shapeIndex.normal_sample()# self.random_shape_index()
+        return DrawParamsNorm("", rnd_shape_index, 0,0,0, self.fillColor.normal_sample(), self.strokeColor.normal_sample(), self.strokeWidth.normal_sample(), \
                 self.locationX.normal_sample(), self.locationY.normal_sample(), self.width.normal_sample(), self.hScale.normal_sample())
 
     @classmethod
-    def random_label_index(cls):
-        return DrawParams.from_label_index(np.random.randint(1, len(cls.labels)))
+    def random_shape_index(cls):
+        return DrawParams.from_shape_index(np.random.randint(0, len(cls.labels)))
     
-    # @classmethod
-    # def symnorms_to_color_range(cls, unot_value:Unot):
-    #     start = cls.symnorm_to_color(unot_value.imag)
-    #     end = cls.symnorm_to_color(unot_value.real)
-    #     return (start, end)
-    
-    # @classmethod
-    # def symnorms_to_stroke_width_range(cls, unot_value:Unot):
-    #     start = cls.norm_to_stroke_width(unot_value.imag)
-    #     end = cls.norm_to_stroke_width(unot_value.real)
-    #     return (start, end)
-    
-    # @classmethod
-    # def norm_to_location_range(cls, horz:Unot, vert:Unot, aabb):
-    #     start = cls.norm_to_location(horz.imag, horz.real, aabb)
-    #     end = cls.norm_to_location(vert.real, vert.real, aabb)
-    #     return (start, end)
-    
-    # @classmethod
-    # def symnorms_to_size_range(cls, unot_width:Unot, unot_hScale:float, aabb):
-    #     widths = cls.norm_to_size(unot_width.imag, unot_width.real, aabb)
-    #     heights = cls.norm_to_size(unot_hScale.imag, unot_hScale.real, aabb)
-    #     return (widths[0], widths[1], heights[0], heights[1])
-    
-
-    # def sample_params(self):
-    #     hFill = hls_to_rgb(self.sample(self.fillColor),0.5, 0.8)
-    #     hFill = tuple(int(i * 255) for i in hFill)
-    #     hFill = skia.Color(*hFill)
-    #     hStroke = hls_to_rgb(self.sample(self.strokeColor),0.2, 0.8)
-    #     hStroke = tuple(int(i * 255) for i in hStroke)
-    #     hStroke = skia.Color(*hStroke)
-    #     strokeWidth = self.sample(self.strokeWidth)
-    #     x = self.sample(self.locationX)
-    #     y = self.sample(self.locationY)
-    #     w = self.sample(self.width)
-    #     hScale = self.sample(self.hScale)
-    #     return DrawParams(self.label, self.shapeIndex, hFill, hStroke, strokeWidth, x, y, w, hScale)
-
-    # def sample(self, num:Unot):
-    #     min = -num.imag if -num.imag <= num.real else num.real
-    #     max = -num.imag if -num.imag > num.real else num.real
-    #     return np.random.uniform(min, max)
-    
-    def to_numpy(self):
-        return np.array([
-        [self.label_index, self.shapeIndex],
-        [
-            self.fillColor.imag / float(0xFFFFFF),
-            self.strokeColor.imag / float(0xFFFFFF),
-            self.strokeWidth.imag,
-            self.locationX.imag / 32.0,
-            self.locationY.imag / 32.0,
-            self.width.imag,
-            self.hScale.imag,
-        ],
-        [
-            self.fillColor.real / float(0xFFFFFF),
-            self.strokeColor.real / float(0xFFFFFF),
-            self.strokeWidth.real,
-            self.locationX.real / 32.0,
-            self.locationY.real / 32.0,
-            self.width.real,
-            self.hScale.real,
-        ]])
-    
-    @classmethod
-    def from_numpy(cls, data):
-        label_index = data[0][0]
-        label = cls.labels[label_index]
-        shapeIndex = data[0][1]
-        sg = data[1]
-        eg = data[2]
-        fillColor = Unot(int(sg[0] * 0xFFFFFF), int(eg[0] * 0xFFFFFF))
-        strokeColor = Unot(int(sg[1] * 0xFFFFFF), int(eg[1] * 0xFFFFFF))
-        strokeWidth = Unot(sg[2], eg[2])
-        locX = Unot(sg[3] * 32.0, eg[3] * 32.0)
-        locY = Unot(sg[4] * 32.0, eg[4] * 32.0)
-        sizeW = Unot(sg[5], eg[5])
-        sizeHScale = Unot(sg[6], eg[6])
-        return Concept(label, shapeIndex, fillColor, strokeColor, strokeWidth, locX, locY, sizeW, sizeHScale)

@@ -18,7 +18,7 @@ class InspectData:
         dp = dataset[index]
         return self.skiaGen.draw(dp)
     
-    def show_images(self, images:list, save_path = ""):
+    def show_images(self, images:list, save_path = "",show=True):
         w = images[0][0].width
         h = images[0][0].height
         n_cols = len(images[0])
@@ -33,8 +33,9 @@ class InspectData:
 
         if not (save_path == ""):
             result.save(save_path)
-            plt.imshow(plt.imread(save_path))
-            plt.show()
+            if show:
+                plt.imshow(plt.imread(save_path))
+                plt.show()
 
     def show_images_mpl(self, images:list, save_path = ""):
         if not isinstance(images[0], list):

@@ -63,12 +63,16 @@ class SynthDataset(Dataset):
 
     def gen_from_index(self, index):
         gen = self.data.iloc[index, 1:]
-        val = gen[0]
-        ohe = [0,0,1] if val < .33 else ([0,1,0] if val < .66 else [[1,0,0]])
 
-        gen = np.array(gen[1:])
-        ohe = np.array(ohe)
-        gen = np.concatenate([ohe, gen], axis=None)
+        # val = gen[0]
+        # ohe = [0,0,1] if val < .33 else ([0,1,0] if val < .66 else [[1,0,0]])
+        # gen = np.array(gen[1:])
+        # ohe = np.array(ohe)
+        # gen = np.concatenate([ohe, gen], axis=None)
+
+        
+        gen = np.array(gen)
+        gen = np.concatenate([gen[:1], gen[3:]], axis=None)
         gen = gen.astype('float32')
         return gen
     

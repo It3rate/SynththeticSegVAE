@@ -8,7 +8,7 @@ from Utils import Utils
 
 class VAEmodel(nn.Module):
 
-    latent_dimensions = 10
+    latent_dimensions = 8
 
     def __init__(self, latent_dims, hidden_dims, image_shape, create_model = True):
         super(VAEmodel, self).__init__()
@@ -155,7 +155,6 @@ class VAEmodel(nn.Module):
     def forward(self, input, gen=None):
         mu, log_var = self.encode(input)
         reparam = self.reparameterize(mu, log_var)
-        #print(gen.shape, reparam.shape)
         z = gen if gen != None else reparam
         return  [self.decode(z), input, mu, log_var, z]
     

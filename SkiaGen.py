@@ -1,6 +1,9 @@
+from re import X
 from tkinter import Canvas
 import skia
 import csv
+import math
+import random
 import numpy as np
 from PIL import Image
 from DrawParams import DrawParams, DrawParamsNorm
@@ -42,9 +45,8 @@ class SkiaGen:
         x = dp.locationX - w/2.0
         y = dp.locationY - h/2.0
         rect = skia.Rect(x, y, x + w, y + h)
-        if(dp.label_index <= 3):
-            canvas.drawRect(rect, paint)
-        elif(dp.label_index <= 6):
+        
+        if(dp.shape_index < 1):
             r1 = 6
             r2 = 6 + w
             path = skia.Path()
@@ -53,21 +55,27 @@ class SkiaGen:
             # path.arcTo(x - r1, y - r1, x + r1, y + r1, 0, -180, True)
             path.close()
             canvas.drawPath(path, paint)
-        else:
+        elif(dp.shape_index < 2):
             canvas.drawOval(rect, paint)
+        elif(dp.shape_index < 5):
+            path = self.gen_poly_shape(int(dp.shape_index + 1), dp.starness, dp.rotation, w / 2.0, h / 2.0)
+            canvas.drawPath(path, paint)
+        else:
+            canvas.drawRoundRect(rect, 3, 3, paint)
 
-    def gen_data(self, folder_path:str, count:int, start_index:int = 0):
+    def gen_data(self, folder_path:str, count:int, concepts=[], start_index:int = 0):
         path = f'{folder_path}/params.csv'
         Utils.EnsureFolder(path)
         gen = SkiaGen()
-        concept = Concept.init_as_full_range()
+        concepts = [Concept.init_as_full_range()] if len(concepts) == 0 else concepts
         lst = []
         with open(path, 'w', newline='\n') as file:
                 writer = csv.writer(file)
                 writer.writerow(DrawParamsNorm.data_description())
                 for i in range(count):
                     index = start_index + i
-                    dp = concept.gen_uniform_samples()
+                    cur_concept = random.choice(concepts)
+                    dp = cur_concept.gen_uniform_samples()
                     image = gen.draw(dp.to_drawable())
                     filename = f"img_{index}.png"
                     save_path = f"{folder_path}/{filename}"
@@ -78,25 +86,54 @@ class SkiaGen:
                         lst.append(img_pil)
         return lst
 
-    @classmethod
-    def get_concepts(cls):
-        return [
-            Concept("apple", 1, Unot(.04j,.02), Unot(-.1j,.2),  Unot(-.5j,2),    Unot(6j,6), Unot(6j,6), Unot(-6j,14), Unot(-1.1j,.9)),
-            Concept("apple2", 1, Unot(-.15j,.45), Unot(-.2j,.4), Unot(-.5j,2), Unot(6j,6), Unot(6j,6), Unot(-8j,18), Unot(-1j,.7)),
-            Concept("orange", 1, Unot(-.07j,.15), Unot(-.8j,1), Unot(-.2j,1),   Unot(6j,6), Unot(6j,6), Unot(-9j,10), Unot(-.9j,.6)),
-            Concept("box", 0, Unot(-.6j,.8), Unot(-.5j,.7),     Unot(-2j,4),    Unot(6j,6), Unot(6j,6), Unot(-10j,20), Unot(-.95j,1.05)),
-            Concept("banana", 2, Unot(-.11j,.16), Unot(-.01j,.2), Unot(-.8j,2), Unot(6j,6), Unot(6j,6), Unot(-8j,10), Unot(-1.5j,2.5))
-        ]
-    
+    def gen_poly_shape(self, pointCount, starness, rotation, radiusX, radiusY):
+        useStarness = True
+        useRotation = True
+
+        hasStarness = abs(starness) > 0.001 and useStarness
+        scaled_starness = starness / 12.0
+        count = pointCount * 2 if hasStarness else pointCount
+        pointsPerStep = 4 if hasStarness else 2
+        movesPerStep = pointsPerStep // 2
+        values = [0] * (count * 2 + 2)
+        moves = [0] * (count + 1)
+        orientation = rotation if useRotation else 0
+        #orientation += (FlatTop or PackHorizontal) and 1/(pointCount * 2) or 0
+        #orientation += PackHorizontal * 0.25 or 0
+        path = skia.Path()
+        x0, y0 = (0,0)
+        step = Utils.pix2 / pointCount
+        for i in range(pointCount):
+            theta = step * i + orientation * Utils.pix2
+            x = math.sin(theta) * radiusX
+            y = math.cos(theta) * radiusY
+            if i == 0:
+                x0 = x
+                y0 = y
+                path.moveTo(x,y)
+            else:
+                path.lineTo(x,y)
+
+            if hasStarness:
+                radius2x = radiusX + radiusX * scaled_starness 
+                radius2y = radiusY + radiusY * scaled_starness 
+                theta = step * i + step / 2.0 + orientation * Utils.pix2
+                mpRadiusX = math.cos(step / 2.0) * radius2x
+                mpRadiusY = math.cos(step / 2.0) * radius2y
+                x = math.sin(theta) * (mpRadiusX + mpRadiusX * scaled_starness)
+                y = math.cos(theta) * (mpRadiusY + mpRadiusY * scaled_starness)
+                path.lineTo(x,y)
+
+        path.lineTo(x0,y0)        
+        return path
+
 
     @classmethod
-    def gen_dataX(cls, count:int, start_index:int = 0):
+    def gen_data_concepts(cls, count:int, concepts:list, start_index:int = 0):
         path = 'data/params.csv'
         Utils.EnsureFolder(path)
         gen = SkiaGen()
-        concepts = cls.get_concepts()
-        #dp = DrawParams("test", skia.ColorYELLOW, skia.ColorBLUE, 3, Size(8,12), Point(10, 5)) 
-        #dp = DrawParams("test", skia.Color(0, 136, 0), skia.Color(220, 136, 0), 5, Point(10, 5), Size(8,12)) 
+        concepts = Concept.get_concepts()
         lst = []
         with open(path, 'w', newline='\n') as file:
                 writer = csv.writer(file)

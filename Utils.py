@@ -1,6 +1,10 @@
 import os
+import math
 
 class Utils:
+
+    pix2 = math.pi * 2
+    
     @classmethod
     def SetHomeAsFileRoot(cls):
         os.chdir(os.path.dirname(os.path.abspath(__file__)))
